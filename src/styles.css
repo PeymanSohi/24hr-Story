@@ -1,0 +1,92 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #fafafa;
+  }
+  
+  .app-container {
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+  }
+  
+  .story-bar {
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    margin-bottom: 10px;
+  }
+  
+  .upload-button {
+    display: inline-block;
+    margin-right: 10px;
+  }
+  
+  .plus-circle {
+    width: 50px;
+    height: 50px;
+    border: 2px dashed gray;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .story-circle {
+    width: 50px;
+    height: 50px;
+    background: lightgray;
+    border-radius: 50%;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+  
+  .story-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .story-image {
+    max-width: 100%;
+    max-height: 80%;
+    object-fit: contain;
+  }
+  
+  .progress-bar-container {
+    display: flex;
+    width: 100%;
+    height: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .progress-bar {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 0 1px;
+    transition: width 3s linear;
+  }
+  
+  .progress-bar.active {
+    background: white;
+    animation: fill 3s linear forwards;
+  }
+  
+  .progress-bar.done {
+    background: white;
+  }
+  
+  @keyframes fill {
+    from { width: 0%; }
+    to { width: 100%; }
+  }
+  
