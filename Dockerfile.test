@@ -1,0 +1,38 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Install Cypress dependencies
+RUN apk add --no-cache \
+    libstdc++ \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    nodejs \
+    yarn
+
+# Set display port to avoid crash
+ENV DISPLAY=:99
+
+# Add Chrome as a user
+RUN mkdir -p /usr/src/app \
+    && adduser -D chrome \
+    && chown -R chrome:chrome /usr/src/app
+
+# Run Chrome as non-privileged
+USER chrome
+WORKDIR /usr/src/app
+
+# Start Chrome
+CMD ["npm", "run", "test"] 

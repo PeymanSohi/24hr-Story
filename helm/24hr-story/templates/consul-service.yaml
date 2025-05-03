@@ -1,0 +1,63 @@
+{{- if .Values.app.consul.enabled }}
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: {{ .Release.Name }}-app
+spec:
+  protocol: http
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: {{ .Release.Name }}-app
+spec:
+  destination:
+    name: {{ .Release.Name }}-app
+  sources:
+    - name: prometheus
+      action: allow
+    - name: grafana
+      action: allow
+    - name: kibana
+      action: allow
+    - name: logstash
+      action: allow
+    - name: redis
+      action: allow
+    - name: rabbitmq
+      action: allow
+    - name: minio
+      action: allow
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ProxyDefaults
+metadata:
+  name: global
+spec:
+  meshGateway:
+    mode: local
+  config:
+    protocol: http
+    envoy_prometheus_bind_addr: "0.0.0.0:9102"
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: redis
+spec:
+  protocol: tcp
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: rabbitmq
+spec:
+  protocol: tcp
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: minio
+spec:
+  protocol: http
+{{- end }} 

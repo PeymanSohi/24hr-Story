@@ -24,18 +24,34 @@ jobs:
 
     - name: Run ESLint
       run: npm run lint
-      if: ${{ false }}  # Set to true when you add ESLint
 
     - name: Run Prettier check
       run: npm run format:check
-      if: ${{ false }}  # Set to true when you add Prettier
 
     - name: Check for TypeScript errors
       run: npm run type-check
-      if: ${{ false }}  # Set to true when you add TypeScript
 
     - name: Run SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    - name: Run test coverage
+      run: npm run test -- --coverage
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+
+    - name: Check for security vulnerabilities
+      run: npm audit --production
+
+    - name: Run dependency check
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high 

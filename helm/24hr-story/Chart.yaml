@@ -1,0 +1,58 @@
+apiVersion: v2
+name: 24hr-story
+description: A Helm chart for 24hr Story application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: Your Name
+    email: your.email@example.com
+keywords:
+  - social
+  - stories
+  - react
+  - monitoring
+home: https://github.com/yourusername/24hr-story
+sources:
+  - https://github.com/yourusername/24hr-story
+dependencies:
+  - name: prometheus
+    version: "15.10.1"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus.enabled
+  - name: grafana
+    version: "6.40.1"
+    repository: https://grafana.github.io/helm-charts
+    condition: grafana.enabled
+  - name: elasticsearch
+    version: "19.5.7"
+    repository: https://helm.elastic.co
+    condition: elasticsearch.enabled
+  - name: kibana
+    version: "7.17.3"
+    repository: https://helm.elastic.co
+    condition: kibana.enabled
+  - name: logstash
+    version: "7.17.3"
+    repository: https://helm.elastic.co
+    condition: logstash.enabled
+  - name: sonarqube
+    version: "9.2.0"
+    repository: https://SonarSource.github.io/helm-chart-sonarqube
+    condition: sonarqube.enabled
+  - name: consul
+    version: "1.2.0"
+    repository: https://helm.releases.hashicorp.com
+    condition: consul.enabled
+  - name: redis
+    version: "17.11.3"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: rabbitmq
+    version: "12.6.6"
+    repository: https://charts.bitnami.com/bitnami
+    condition: rabbitmq.enabled
+  - name: minio
+    version: "12.7.3"
+    repository: https://charts.bitnami.com/bitnami
+    condition: minio.enabled 

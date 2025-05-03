@@ -1,0 +1,189 @@
+app:
+  replicaCount: 2
+  image:
+    repository: registry.gitlab.com/24hr-story
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    NODE_ENV: production
+    REACT_APP_API_URL: "https://api.24hr-story.com"
+    REACT_APP_ENABLE_NOTIFICATIONS: "true"
+    REACT_APP_ENABLE_SOCIAL_SHARING: "true"
+    REACT_APP_ENABLE_ANALYTICS: "true"
+    REACT_APP_ENABLE_DARK_MODE: "true"
+    secretRef: 24hr-story-secrets
+  consul:
+    enabled: true
+    serviceName: 24hr-story
+    serviceTags:
+      - web
+      - frontend
+    servicePort: 3000
+    config:
+      - key: app/config
+        value: |
+          {
+            "apiUrl": "http://api.24hr-story.local",
+            "environment": "production"
+          }
+
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: true
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: user
+    password: password
+
+minio:
+  enabled: true
+  accessKey: minioaccess
+  secretKey: miniosecret
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+consul:
+  enabled: true
+  global:
+    name: consul
+    datacenter: dc1
+  server:
+    replicas: 3
+    bootstrapExpect: 3
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    storage:
+      enabled: true
+      size: 10Gi
+  client:
+    enabled: true
+    grpc: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  ui:
+    enabled: true
+    service:
+      type: ClusterIP
+  connectInject:
+    enabled: true
+  controller:
+    enabled: true
+  syncCatalog:
+    enabled: true
+    default: true
+    toConsul: true
+    toK8s: true
+
+prometheus:
+  enabled: true
+  server:
+    persistentVolume:
+      enabled: true
+      size: 8Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+grafana:
+  enabled: true
+  adminPassword: admin
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+elasticsearch:
+  enabled: true
+  replicas: 1
+  esJavaOpts: "-Xmx512m -Xms512m"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  persistence:
+    enabled: true
+    size: 10Gi
+
+kibana:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+logstash:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    size: 5Gi
+
+sonarqube:
+  enabled: true
+  postgresql:
+    enabled: true
+    postgresqlUsername: sonar
+    postgresqlPassword: sonar
+    postgresqlDatabase: sonarqube
+    persistence:
+      enabled: true
+      size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  persistence:
+    enabled: true
+    size: 10Gi 

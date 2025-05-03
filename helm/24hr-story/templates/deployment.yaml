@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "24hr-story.fullname" . }}
+  labels:
+    {{- include "24hr-story.labels" . | nindent 4 }}
+  {{- if .Values.app.consul.enabled }}
+  annotations:
+    consul.hashicorp.com/connect-inject: "true"
+    consul.hashicorp.com/service-tags: {{ .Values.app.consul.serviceTags | toJson }}
+    consul.hashicorp.com/service-name: {{ .Values.app.consul.serviceName }}
+    consul.hashicorp.com/service-port: {{ .Values.app.consul.servicePort | quote }}
+  {{- end }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "24hr-story.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "24hr-story.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.environment }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            - name: REDIS_HOST
+              value: {{ include "24hr-story.fullname" . }}-redis-master
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "24hr-story.fullname" . }}-redis
+                  key: redis-password
+            - name: RABBITMQ_HOST
+              value: {{ include "24hr-story.fullname" . }}-rabbitmq
+            - name: RABBITMQ_USERNAME
+              value: {{ .Values.rabbitmq.auth.username }}
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "24hr-story.fullname" . }}-rabbitmq
+                  key: rabbitmq-password
+            - name: MINIO_ENDPOINT
+              value: {{ include "24hr-story.fullname" . }}-minio
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "24hr-story.fullname" . }}-minio
+                  key: access-key
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "24hr-story.fullname" . }}-minio
+                  key: secret-key
+            {{- if .Values.app.consul.enabled }}
+            - name: CONSUL_HTTP_ADDR
+              value: "http://localhost:8500"
+            - name: CONSUL_GRPC_ADDR
+              value: "localhost:8502"
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "24hr-story.fullname" . }}-config 
