@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 function StoryViewer({ stories, activeIndex, onClose }) {
   const [index, setIndex] = useState(activeIndex);
   const [isPaused, setIsPaused] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
 
   useEffect(() => {
     if (index >= stories.length) return onClose();
@@ -34,6 +35,22 @@ function StoryViewer({ stories, activeIndex, onClose }) {
     }
   };
 
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return date.toLocaleDateString();
+  };
+
+  const handleReaction = (type) => {
+    // Here you would typically send the reaction to a backend
+    setShowReactions(false);
+  };
+
   if (index >= stories.length) return null;
 
   return (
@@ -48,9 +65,14 @@ function StoryViewer({ stories, activeIndex, onClose }) {
         ))}
       </div>
       
-      <button className="close-button" onClick={onClose}>
-        ✕
-      </button>
+      <div className="story-header">
+        <div className="user-info">
+          <img src={stories[index].userAvatar || '/default-avatar.png'} alt="user" className="user-avatar" />
+          <span className="username">{stories[index].username || 'User'}</span>
+          <span className="timestamp">{formatTime(stories[index].timestamp)}</span>
+        </div>
+        <button className="close-button" onClick={onClose}>✕</button>
+      </div>
 
       <div className="story-content">
         <img src={stories[index].image} alt="story" className="story-image" />
@@ -60,6 +82,47 @@ function StoryViewer({ stories, activeIndex, onClose }) {
           </div>
         )}
       </div>
+
+      <div className="story-actions">
+        <button 
+          className="reaction-button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowReactions(!showReactions);
+          }}
+        >
+          ❤️
+        </button>
+        <button 
+          className="message-button"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Handle message
+          }}
+        >
+          💬
+        </button>
+        <button 
+          className="share-button"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Handle share
+          }}
+        >
+          📤
+        </button>
+      </div>
+
+      {showReactions && (
+        <div className="reactions-panel" onClick={(e) => e.stopPropagation()}>
+          <button onClick={() => handleReaction('like')}>❤️</button>
+          <button onClick={() => handleReaction('love')}>😍</button>
+          <button onClick={() => handleReaction('laugh')}>😂</button>
+          <button onClick={() => handleReaction('wow')}>😮</button>
+          <button onClick={() => handleReaction('sad')}>😢</button>
+          <button onClick={() => handleReaction('angry')}>😠</button>
+        </div>
+      )}
     </div>
   );
 }
