@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser, registerUser, logoutUser, getCurrentUser } from '../services/authService';
+import { loginUser, registerUser, logoutUser, getCurrentUser, updateUserProfile } from '../services/authService';
 import { useToast } from './ToastContext';
 
 const AuthContext = createContext(null);
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { showToast } = useToast();
+  const { addToast } = useToast();
 
   useEffect(() => {
     checkAuth();
@@ -38,11 +38,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const userData = await loginUser(credentials);
       setUser(userData);
-      showToast('Successfully logged in!', 'success');
+      addToast('Successfully logged in!', 'success');
       navigate('/');
       return true;
     } catch (error) {
-      showToast(error.message || 'Login failed', 'error');
+      addToast(error.message || 'Login failed', 'error');
       return false;
     }
   };
@@ -51,11 +51,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const newUser = await registerUser(userData);
       setUser(newUser);
-      showToast('Registration successful!', 'success');
+      addToast('Registration successful!', 'success');
       navigate('/');
       return true;
     } catch (error) {
-      showToast(error.message || 'Registration failed', 'error');
+      addToast(error.message || 'Registration failed', 'error');
       return false;
     }
   };
@@ -64,10 +64,10 @@ export const AuthProvider = ({ children }) => {
     try {
       await logoutUser();
       setUser(null);
-      showToast('Successfully logged out!', 'success');
+      addToast('Successfully logged out!', 'success');
       navigate('/login');
     } catch (error) {
-      showToast(error.message || 'Logout failed', 'error');
+      addToast(error.message || 'Logout failed', 'error');
     }
   };
 
@@ -75,10 +75,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const updatedUser = await updateUserProfile(profileData);
       setUser(updatedUser);
-      showToast('Profile updated successfully!', 'success');
+      addToast('Profile updated successfully!', 'success');
       return true;
     } catch (error) {
-      showToast(error.message || 'Profile update failed', 'error');
+      addToast(error.message || 'Profile update failed', 'error');
       return false;
     }
   };

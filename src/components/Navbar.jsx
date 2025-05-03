@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './Navbar.css';
 
 function Navbar({ onThemeChange }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,7 +77,10 @@ function Navbar({ onThemeChange }) {
             )}
           </div>
 
-          <button className="create-post-button">
+          <button
+            className="create-post-button"
+            onClick={() => navigate('/create')}
+          >
             <span className="plus-icon">+</span>
             <span className="button-text">Create</span>
           </button>
