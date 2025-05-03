@@ -27,8 +27,15 @@ function App() {
 
   return (
     <div className="app-container">
-      <StoryBar stories={stories} onStoryClick={handleStoryClick} />
-      <UploadButton onUpload={reloadStories} />
+      <header className="header">
+        <h1>24hr Story</h1>
+      </header>
+      
+      <main>
+        <StoryBar stories={stories} onStoryClick={handleStoryClick} />
+        <UploadButton onUpload={reloadStories} />
+      </main>
+
       {activeIndex !== null && (
         <StoryViewer
           stories={stories}

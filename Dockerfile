@@ -1,23 +1,21 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy and install dependencies
-COPY package.json package-lock.json ./
-RUN npm install
+COPY package*.json ./
 
-# Copy all project files
+RUN npm ci
+
 COPY . .
 
-# Build the React app
 RUN npm run build
 
-# Install serve to serve the build folder
-RUN npm install -g serve
+FROM nginx:alpine
 
-# Expose port
-EXPOSE 3000
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# Serve the build
-CMD ["serve", "-s", "build", "-l", "3000"]
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
