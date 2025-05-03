@@ -1,35 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import UploadButton from './components/UploadButton';
 import StoryBar from './components/StoryBar';
 import StoryViewer from './components/StoryViewer';
 import Post from './components/Post';
 import CreatePost from './components/CreatePost';
-import { loadStories, cleanExpiredStories } from './utils/localStorageUtils';
+import Navbar from './components/Navbar';
+import BottomNav from './components/BottomNav';
+import CreateModal from './components/CreateModal';
+import './styles.css';
 
 function App() {
   const [stories, setStories] = useState([]);
   const [posts, setPosts] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [selectedStory, setSelectedStory] = useState(null);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    cleanExpiredStories();
-    setStories(loadStories());
-    // Load posts from localStorage
-    const savedPosts = JSON.parse(localStorage.getItem('posts') || '[]');
+    // Load stories and posts from localStorage
+    const savedStories = JSON.parse(localStorage.getItem('stories')) || [];
+    const savedPosts = JSON.parse(localStorage.getItem('posts')) || [];
+    setStories(savedStories);
     setPosts(savedPosts);
+
+    // Check for system dark mode preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setIsDarkMode(prefersDark);
   }, []);
 
-  const handleStoryClick = (index) => {
-    setActiveIndex(index);
+  useEffect(() => {
+    // Update body class for dark mode
+    document.body.classList.toggle('dark-mode', isDarkMode);
+  }, [isDarkMode]);
+
+  const handleStoryClick = (story) => {
+    setSelectedStory(story);
   };
 
-  const closeViewer = () => {
-    setActiveIndex(null);
-  };
-
-  const reloadStories = () => {
-    setStories(loadStories());
+  const handleStoryClose = () => {
+    setSelectedStory(null);
   };
 
   const handleCreatePost = (newPost) => {
@@ -37,79 +46,101 @@ function App() {
     setPosts(updatedPosts);
     localStorage.setItem('posts', JSON.stringify(updatedPosts));
     setShowCreatePost(false);
+    setShowCreateModal(false);
   };
 
-  const handleLike = (postId, isLiked) => {
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          likes: isLiked ? post.likes + 1 : post.likes - 1
-        };
-      }
-      return post;
-    });
-    setPosts(updatedPosts);
-    localStorage.setItem('posts', JSON.stringify(updatedPosts));
+  const handleCreateStory = () => {
+    // Handle story creation
+    setShowCreateModal(false);
   };
 
-  const handleComment = (postId, comment) => {
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: [...(post.comments || []), {
-            username: 'You',
-            text: comment
-          }]
-        };
-      }
-      return post;
-    });
-    setPosts(updatedPosts);
-    localStorage.setItem('posts', JSON.stringify(updatedPosts));
+  const handleThemeChange = (darkMode) => {
+    setIsDarkMode(darkMode);
   };
 
   return (
-    <div className="app-container">
-      <header className="header">
-        <h1>24hr Story</h1>
-        <button 
-          className="create-post-button"
-          onClick={() => setShowCreatePost(true)}
-        >
-          Create Post
-        </button>
-      </header>
+    <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
+      <Navbar onThemeChange={handleThemeChange} />
       
-      <main>
-        <StoryBar stories={stories} onStoryClick={handleStoryClick} />
-        
-        {showCreatePost && (
-          <CreatePost onPost={handleCreatePost} />
-        )}
+      <main className="main-content">
+        <div className="stories-container">
+          <StoryBar stories={stories} onStoryClick={handleStoryClick} />
+        </div>
 
         <div className="posts-container">
-          {posts.map(post => (
+          {posts.map((post) => (
             <Post
               key={post.id}
               post={post}
-              onLike={handleLike}
-              onComment={handleComment}
+              onLike={() => {
+                const updatedPosts = posts.map((p) =>
+                  p.id === post.id
+                    ? { ...p, likes: p.likes + 1 }
+                    : p
+                );
+                setPosts(updatedPosts);
+                localStorage.setItem('posts', JSON.stringify(updatedPosts));
+              }}
+              onComment={(comment) => {
+                const updatedPosts = posts.map((p) =>
+                  p.id === post.id
+                    ? {
+                        ...p,
+                        comments: [
+                          ...p.comments,
+                          {
+                            id: Date.now(),
+                            text: comment,
+                            username: 'Current User',
+                            timestamp: new Date().toISOString(),
+                          },
+                        ],
+                      }
+                    : p
+                );
+                setPosts(updatedPosts);
+                localStorage.setItem('posts', JSON.stringify(updatedPosts));
+              }}
             />
           ))}
         </div>
-
-        <UploadButton onUpload={reloadStories} />
       </main>
 
-      {activeIndex !== null && (
+      {selectedStory && (
         <StoryViewer
-          stories={stories}
-          activeIndex={activeIndex}
-          onClose={closeViewer}
+          story={selectedStory}
+          onClose={handleStoryClose}
+          onNext={() => {
+            const currentIndex = stories.findIndex((s) => s.id === selectedStory.id);
+            if (currentIndex < stories.length - 1) {
+              setSelectedStory(stories[currentIndex + 1]);
+            }
+          }}
+          onPrevious={() => {
+            const currentIndex = stories.findIndex((s) => s.id === selectedStory.id);
+            if (currentIndex > 0) {
+              setSelectedStory(stories[currentIndex - 1]);
+            }
+          }}
         />
       )}
+
+      {showCreatePost && (
+        <CreatePost
+          onClose={() => setShowCreatePost(false)}
+          onSubmit={handleCreatePost}
+        />
+      )}
+
+      {showCreateModal && (
+        <CreateModal
+          onClose={() => setShowCreateModal(false)}
+          onCreatePost={() => setShowCreatePost(true)}
+          onCreateStory={handleCreateStory}
+        />
+      )}
+
+      <BottomNav onOpenCreateModal={() => setShowCreateModal(true)} />
     </div>
   );
 }
